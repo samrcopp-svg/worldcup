@@ -1,0 +1,12 @@
+# Render Blueprint — lets you deploy in a couple of clicks.
+# In Render: New + → Blueprint → pick this repo → Apply.
+services:
+  - type: web
+    name: worldcup-sweepstake
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: ADMIN_KEY
+        sync: false   # Render will prompt you to enter a secret value

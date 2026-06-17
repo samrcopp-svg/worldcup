@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Family World Cup 2026</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="trophy">🏆</div>
+    <h1>World Cup 2026</h1>
+    <p class="sub">Family Sweepstake · <span id="updated">loading…</span></p>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="table">Leaderboard</button>
+    <button class="tab" data-tab="matches">Matches</button>
+  </nav>
+
+  <main>
+    <!-- TAB 1: LEADERBOARD -->
+    <div id="tab-table">
+      <section class="card">
+        <h2>Leaderboard</h2>
+        <table class="standings">
+          <thead>
+            <tr><th class="rank">#</th><th>Player</th><th class="wdl">W&nbsp;·&nbsp;D&nbsp;·&nbsp;L</th><th class="grp">Group</th><th class="ko">Knockout</th><th class="pts">Total</th></tr>
+          </thead>
+          <tbody id="standings-body"></tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>The Breakdown</h2>
+        <p class="hint">Each player has 8 teams. Group games: <strong>win 3, draw 1, loss 0</strong>. Knockout rounds add a stacking bonus.</p>
+        <div id="breakdown"></div>
+      </section>
+
+      <section class="card scoring">
+        <h2>How points work</h2>
+        <p><strong>Group stage</strong> — every match: win = 3, draw = 1, loss = 0.</p>
+        <p><strong>Knockout</strong> — a bonus that stacks for each round reached:</p>
+        <ul id="scoring-list"></ul>
+      </section>
+    </div>
+
+    <!-- TAB 2: MATCHES -->
+    <div id="tab-matches" hidden>
+      <section class="card">
+        <h2>All Matches <span class="tz">(New Zealand time)</span></h2>
+        <p class="hint" id="match-note"></p>
+        <div id="matches"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer><a href="admin.html">Admin</a></footer>
+  <script src="app.js"></script>
+</body>
+</html>
