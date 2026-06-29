@@ -229,7 +229,10 @@ function buildStandings() {
         const hs = Number(e.intHomeScore), as = Number(e.intAwayScore);
         if (hs !== as) {
           const winR = hs > as ? home : away, loseR = hs > as ? away : home;
-          if (round.key === 'final' && winR) teams[winR.canonical].knock = 'champ';
+          // Winning a knockout game advances the team to the next round (and so
+          // earns that round's bonus) even before the next fixture is published.
+          const nextKey = KNOCK_ORDER[KNOCK_ORDER.indexOf(round.key) + 1];
+          if (winR && nextKey) { const t = teams[winR.canonical]; if (t && KNOCK_ORDER.indexOf(nextKey) > KNOCK_ORDER.indexOf(t.knock)) t.knock = nextKey; }
           if (loseR) { teams[loseR.canonical].eliminated = true; teams[loseR.canonical].eliminatedAt = round.key; } // lost a knockout
         }
       }
