@@ -6,9 +6,17 @@
 
 const API = 'https://www.thesportsdb.com/api/v1/json/123';
 const SOURCES = [
+  // Group matchdays
   `${API}/eventsround.php?id=4429&r=1&s=2026`,
   `${API}/eventsround.php?id=4429&r=2&s=2026`,
   `${API}/eventsround.php?id=4429&r=3&s=2026`,
+  // Knockout rounds — this feed numbers them round-of-N (32, 16, 8, 4).
+  // Fetched directly so every game loads (the past/next windows only return a
+  // couple at a time, which was hiding most of the Round of 32).
+  `${API}/eventsround.php?id=4429&r=32&s=2026`,
+  `${API}/eventsround.php?id=4429&r=16&s=2026`,
+  `${API}/eventsround.php?id=4429&r=8&s=2026`,
+  `${API}/eventsround.php?id=4429&r=4&s=2026`,
   `${API}/eventspastleague.php?id=4429`,
   `${API}/eventsnextleague.php?id=4429`,
 ];
@@ -19,7 +27,10 @@ const KNOCK_ORDER = ['r32', 'r16', 'qf', 'sf', 'final', 'champ'];
 const KNOCK_LABEL = { r32: 'Round of 32', r16: 'Round of 16', qf: 'Quarter-final', sf: 'Semi-final', final: 'Final', champ: 'Champion' };
 function knockoutPoints(key) { if (!key) return 0; let t = 0; for (const k of KNOCK_ORDER) { t += KNOCK_AWARD[k]; if (k === key) break; } return t; }
 
-const ROUND_MAP = { '125': 'final', '126': 'sf', '127': 'qf', '128': 'r16', '129': 'r32' };
+// This feed numbers knockout rounds by teams remaining (32/16/8/4); the 125–129
+// codes are kept as a fallback for other seasons. Final/3rd-place codes will be
+// added once that round is published by the feed.
+const ROUND_MAP = { '32': 'r32', '16': 'r16', '8': 'qf', '4': 'sf', '125': 'final', '126': 'sf', '127': 'qf', '128': 'r16', '129': 'r32' };
 function classifyRound(r) { r = String(r); if (r === '1' || r === '2' || r === '3') return { group: true }; return { group: false, key: ROUND_MAP[r] || 'r32' }; }
 
 const KNOCKOUT_SKELETON = [

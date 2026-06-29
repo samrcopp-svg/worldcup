@@ -15,6 +15,12 @@ const SOURCES = [
   `${API}/eventsround.php?id=4429&r=1&s=2026`,
   `${API}/eventsround.php?id=4429&r=2&s=2026`,
   `${API}/eventsround.php?id=4429&r=3&s=2026`,
+  // Knockout rounds — feed numbers them round-of-N (32, 16, 8, 4). Fetched
+  // directly so every game loads (past/next windows only return a couple).
+  `${API}/eventsround.php?id=4429&r=32&s=2026`,
+  `${API}/eventsround.php?id=4429&r=16&s=2026`,
+  `${API}/eventsround.php?id=4429&r=8&s=2026`,
+  `${API}/eventsround.php?id=4429&r=4&s=2026`,
   `${API}/eventspastleague.php?id=4429`,
   `${API}/eventsnextleague.php?id=4429`,
 ];
@@ -51,7 +57,7 @@ function knockoutPoints(reachedKey) {
 
 // TheSportsDB intRound: 1/2/3 = group matchdays. Anything else = knockout.
 // These codes are best-effort and easy to adjust once knockouts begin.
-const ROUND_MAP = { '125': 'final', '126': 'sf', '127': 'qf', '128': 'r16', '129': 'r32' };
+const ROUND_MAP = { '32': 'r32', '16': 'r16', '8': 'qf', '4': 'sf', '125': 'final', '126': 'sf', '127': 'qf', '128': 'r16', '129': 'r32' };
 function classifyRound(intRound) {
   const r = String(intRound);
   if (r === '1' || r === '2' || r === '3') return { group: true };
