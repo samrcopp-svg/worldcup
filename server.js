@@ -41,7 +41,7 @@ const KNOCKOUT_SKELETON = [
 // ---- Scoring model ----------------------------------------------------------
 // GROUP STAGE: per match — win 3, draw 1, loss 0.
 // KNOCKOUT: a bonus that stacks for every round a team reaches.
-const KNOCK_AWARD = { r32: 3, r16: 4, qf: 5, sf: 6, final: 7, champ: 8 };
+const KNOCK_AWARD = { r32: 1, r16: 3, qf: 4, sf: 5, final: 6, champ: 7 };
 const KNOCK_ORDER = ['r32', 'r16', 'qf', 'sf', 'final', 'champ'];
 const KNOCK_LABEL = { r32: 'Round of 32', r16: 'Round of 16', qf: 'Quarter-final', sf: 'Semi-final', final: 'Final', champ: 'Champion' };
 

@@ -22,7 +22,7 @@ const SOURCES = [
 ];
 
 // ---- Scoring ----
-const KNOCK_AWARD = { r32: 3, r16: 4, qf: 5, sf: 6, final: 7, champ: 8 };
+const KNOCK_AWARD = { r32: 1, r16: 3, qf: 4, sf: 5, final: 6, champ: 7 };
 const KNOCK_ORDER = ['r32', 'r16', 'qf', 'sf', 'final', 'champ'];
 const KNOCK_LABEL = { r32: 'Round of 32', r16: 'Round of 16', qf: 'Quarter-final', sf: 'Semi-final', final: 'Final', champ: 'Champion' };
 function knockoutPoints(key) { if (!key) return 0; let t = 0; for (const k of KNOCK_ORDER) { t += KNOCK_AWARD[k]; if (k === key) break; } return t; }
