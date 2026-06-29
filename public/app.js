@@ -77,13 +77,15 @@ function renderBreakdown(table) {
 function teamRow(t) {
   const out = t.eliminated;
   const live = t.knockPts > 0;
-  const detail = t.played
-    ? `${esc(t.record)}${live ? ' · ' + esc(t.stageLabel) : ''}`
-    : 'not played yet';
+  const record = t.played
+    ? `<span class="stage-tag">${esc(t.record)}</span>`
+    : `<span class="stage-tag">not played yet</span>`;
+  let tags;
+  if (out) tags = `${record}<span class="stage-tag gone">Out · ${esc(t.eliminatedLabel)}</span>`;
+  else if (live) tags = `${record}<span class="stage-tag live">${esc(t.stageLabel)}</span>`;
+  else tags = record;
   return `<div class="team-row ${out ? 'out' : ''}">
-    <span class="tname"><span class="tn-name">${esc(t.name)}</span>
-      <span class="stage-tag ${out ? 'gone' : live ? 'live' : ''}">${out ? 'Eliminated' : detail}</span>
-    </span>
+    <span class="tname"><span class="tn-name">${esc(t.name)}</span>${tags}</span>
     <span class="tpts">${t.points} pt${t.points === 1 ? '' : 's'}</span>
   </div>`;
 }

@@ -83,7 +83,7 @@ function buildStandings() {
   const owners = {}, teams = {};
   for (const [owner, list] of Object.entries(SEED)) {
     owners[owner] = { owner, groupPts: 0, knockPts: 0, points: 0, w: 0, d: 0, l: 0, teams: [] };
-    for (const t of list) teams[t] = { name: t, owner, groupPts: 0, played: 0, w: 0, d: 0, l: 0, knock: null, eliminated: false };
+    for (const t of list) teams[t] = { name: t, owner, groupPts: 0, played: 0, w: 0, d: 0, l: 0, knock: null, eliminated: false, eliminatedAt: null };
   }
   for (const e of EVENTS) {
     const round = classifyRound(e.intRound);
@@ -105,19 +105,20 @@ function buildStandings() {
         if (hs !== as) {
           const winR = hs > as ? home : away, loseR = hs > as ? away : home;
           if (round.key === 'final' && winR) teams[winR.canonical].knock = 'champ';
-          if (loseR) teams[loseR.canonical].eliminated = true; // lost a knockout
+          if (loseR) { teams[loseR.canonical].eliminated = true; teams[loseR.canonical].eliminatedAt = round.key; } // lost a knockout
         }
       }
     }
   }
   // Once the knockouts exist, any team that never qualified is out of the group.
   if (EVENTS.some(e => !classifyRound(e.intRound).group)) {
-    for (const t of Object.values(teams)) if (!t.knock) t.eliminated = true;
+    for (const t of Object.values(teams)) if (!t.knock) { t.eliminated = true; if (!t.eliminatedAt) t.eliminatedAt = 'group'; }
   }
   for (const t of Object.values(teams)) {
     const kp = knockoutPoints(t.knock), total = t.groupPts + kp, o = owners[t.owner];
     o.groupPts += t.groupPts; o.knockPts += kp; o.points += total; o.w += t.w; o.d += t.d; o.l += t.l;
-    o.teams.push({ name: t.name, points: total, groupPts: t.groupPts, knockPts: kp, played: t.played, record: `${t.w}W ${t.d}D ${t.l}L`, stageLabel: t.knock ? KNOCK_LABEL[t.knock] : 'Group stage', eliminated: t.eliminated });
+    const outLabel = t.eliminatedAt === 'group' ? 'Group stage' : (KNOCK_LABEL[t.eliminatedAt] || 'Knockout');
+    o.teams.push({ name: t.name, points: total, groupPts: t.groupPts, knockPts: kp, played: t.played, record: `${t.w}W ${t.d}D ${t.l}L`, stageLabel: t.knock ? KNOCK_LABEL[t.knock] : 'Group stage', eliminated: t.eliminated, eliminatedLabel: outLabel });
   }
   const table = Object.values(owners).sort((a, b) => b.points - a.points);
   for (const o of table) o.teams.sort((a, b) => b.points - a.points || a.name.localeCompare(b.name));
@@ -179,8 +180,12 @@ function renderBreakdown(table) {
 }
 function teamRow(t) {
   const out = t.eliminated, live = t.knockPts > 0;
-  const detail = t.played ? `${esc(t.record)}${live ? ' · ' + esc(t.stageLabel) : ''}` : 'not played yet';
-  return `<div class="team-row ${out ? 'out' : ''}"><span class="tname"><span class="tn-name">${esc(t.name)}</span><span class="stage-tag ${out ? 'gone' : live ? 'live' : ''}">${out ? 'Eliminated' : detail}</span></span><span class="tpts">${t.points} pt${t.points === 1 ? '' : 's'}</span></div>`;
+  const record = t.played ? `<span class="stage-tag">${esc(t.record)}</span>` : `<span class="stage-tag">not played yet</span>`;
+  let tags;
+  if (out) tags = `${record}<span class="stage-tag gone">Out · ${esc(t.eliminatedLabel)}</span>`;
+  else if (live) tags = `${record}<span class="stage-tag live">${esc(t.stageLabel)}</span>`;
+  else tags = record;
+  return `<div class="team-row ${out ? 'out' : ''}"><span class="tname"><span class="tn-name">${esc(t.name)}</span>${tags}</span><span class="tpts">${t.points} pt${t.points === 1 ? '' : 's'}</span></div>`;
 }
 function renderMatches(matches) {
   document.getElementById('match-note').textContent = matches.length ? `${matches.length} matches · scores update automatically` : 'No fixtures yet.';

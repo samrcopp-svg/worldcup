@@ -199,7 +199,7 @@ function buildStandings() {
   for (const [owner, list] of Object.entries(SEED)) {
     owners[owner] = { owner, groupPts: 0, knockPts: 0, points: 0, w: 0, d: 0, l: 0, teams: [] };
     for (const t of list) {
-      teams[t] = { name: t, owner, groupPts: 0, played: 0, w: 0, d: 0, l: 0, knock: null, eliminated: false };
+      teams[t] = { name: t, owner, groupPts: 0, played: 0, w: 0, d: 0, l: 0, knock: null, eliminated: false, eliminatedAt: null };
     }
   }
 
@@ -230,14 +230,14 @@ function buildStandings() {
         if (hs !== as) {
           const winR = hs > as ? home : away, loseR = hs > as ? away : home;
           if (round.key === 'final' && winR) teams[winR.canonical].knock = 'champ';
-          if (loseR) teams[loseR.canonical].eliminated = true; // lost a knockout
+          if (loseR) { teams[loseR.canonical].eliminated = true; teams[loseR.canonical].eliminatedAt = round.key; } // lost a knockout
         }
       }
     }
   }
   // Once knockouts exist, any team that never qualified is out of the group.
   if (cache.events.some(e => !classifyRound(e.intRound).group)) {
-    for (const t of Object.values(teams)) if (!t.knock) t.eliminated = true;
+    for (const t of Object.values(teams)) if (!t.knock) { t.eliminated = true; if (!t.eliminatedAt) t.eliminatedAt = 'group'; }
   }
 
   // Apply manual overrides (knockout stage reached) if present.
@@ -257,6 +257,7 @@ function buildStandings() {
       played: t.played, record: `${t.w}W ${t.d}D ${t.l}L`,
       stageLabel: t.knock ? KNOCK_LABEL[t.knock] : 'Group stage',
       eliminated: t.eliminated,
+      eliminatedLabel: t.eliminatedAt === 'group' ? 'Group stage' : (KNOCK_LABEL[t.eliminatedAt] || 'Knockout'),
     });
   }
   const table = Object.values(owners).sort((a, b) => b.points - a.points);
