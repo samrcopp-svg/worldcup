@@ -89,8 +89,9 @@ tr.top td { background: linear-gradient(90deg, #fff8e1 0%, #ffffff 60%); }
 }
 .team-row:last-child { border-bottom: none; }
 .team-row .tname { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.team-row.out .tname { color: var(--muted); }
-.team-row.out .tname > span:first-child { text-decoration: line-through; }
+.team-row.out { opacity: 0.6; }
+.team-row.out .tn-name { text-decoration: line-through; text-decoration-color: #c0392b; text-decoration-thickness: 2px; color: var(--muted); }
+.stage-tag.gone { background: #fdecea; color: #c0392b; }
 .stage-tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #eef1f6; color: var(--muted); }
 .stage-tag.live { background: var(--accent-soft); color: var(--accent); }
 .team-row .tpts { font-weight: 600; min-width: 48px; text-align: right; }

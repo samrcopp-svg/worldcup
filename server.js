@@ -204,13 +204,13 @@ function buildStandings() {
   }
 
   for (const e of cache.events) {
-    if (!hasScore(e)) continue;
     const round = classifyRound(e.intRound);
     const home = resolveTeam(e.strHomeTeam);
     const away = resolveTeam(e.strAwayTeam);
-    const hs = Number(e.intHomeScore), as = Number(e.intAwayScore);
 
     if (round.group) {
+      if (!hasScore(e)) continue;
+      const hs = Number(e.intHomeScore), as = Number(e.intAwayScore);
       if (home) {
         const t = teams[home.canonical]; t.played++;
         if (hs > as) { t.w++; t.groupPts += 3; } else if (hs === as) { t.d++; t.groupPts += 1; } else { t.l++; }
@@ -220,18 +220,24 @@ function buildStandings() {
         if (as > hs) { t.w++; t.groupPts += 3; } else if (as === hs) { t.d++; t.groupPts += 1; } else { t.l++; }
       }
     } else {
-      // Knockout: both teams reached this round; loser is eliminated.
+      // Appearing in a knockout fixture (even before kickoff) = reached that round.
       const stageIdx = KNOCK_ORDER.indexOf(round.key);
-      const bump = (rec, won) => {
-        if (!rec) return;
-        const cur = KNOCK_ORDER.indexOf(rec.knock);
-        if (stageIdx > cur) rec.knock = round.key;
-        if (round.key === 'final' && won) rec.knock = 'champ';
-        if (!won) rec.eliminated = true;
-      };
-      bump(home && teams[home.canonical], hs > as);
-      bump(away && teams[away.canonical], as > hs);
+      const reach = rec => { if (rec && stageIdx > KNOCK_ORDER.indexOf(rec.knock)) rec.knock = round.key; };
+      reach(home && teams[home.canonical]);
+      reach(away && teams[away.canonical]);
+      if (hasScore(e)) {
+        const hs = Number(e.intHomeScore), as = Number(e.intAwayScore);
+        if (hs !== as) {
+          const winR = hs > as ? home : away, loseR = hs > as ? away : home;
+          if (round.key === 'final' && winR) teams[winR.canonical].knock = 'champ';
+          if (loseR) teams[loseR.canonical].eliminated = true; // lost a knockout
+        }
+      }
     }
+  }
+  // Once knockouts exist, any team that never qualified is out of the group.
+  if (cache.events.some(e => !classifyRound(e.intRound).group)) {
+    for (const t of Object.values(teams)) if (!t.knock) t.eliminated = true;
   }
 
   // Apply manual overrides (knockout stage reached) if present.

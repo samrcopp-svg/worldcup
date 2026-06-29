@@ -81,8 +81,8 @@ function teamRow(t) {
     ? `${esc(t.record)}${live ? ' · ' + esc(t.stageLabel) : ''}`
     : 'not played yet';
   return `<div class="team-row ${out ? 'out' : ''}">
-    <span class="tname">${esc(t.name)}
-      <span class="stage-tag ${live ? 'live' : ''}">${detail}</span>
+    <span class="tname"><span class="tn-name">${esc(t.name)}</span>
+      <span class="stage-tag ${out ? 'gone' : live ? 'live' : ''}">${out ? 'Eliminated' : detail}</span>
     </span>
     <span class="tpts">${t.points} pt${t.points === 1 ? '' : 's'}</span>
   </div>`;

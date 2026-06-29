@@ -86,19 +86,33 @@ function buildStandings() {
     for (const t of list) teams[t] = { name: t, owner, groupPts: 0, played: 0, w: 0, d: 0, l: 0, knock: null, eliminated: false };
   }
   for (const e of EVENTS) {
-    if (!hasScore(e)) continue;
     const round = classifyRound(e.intRound);
     const home = resolveTeam(e.strHomeTeam), away = resolveTeam(e.strAwayTeam);
-    const hs = Number(e.intHomeScore), as = Number(e.intAwayScore);
     if (round.group) {
+      if (!hasScore(e)) continue;
+      const hs = Number(e.intHomeScore), as = Number(e.intAwayScore);
       if (home) { const t = teams[home.canonical]; t.played++; if (hs > as) { t.w++; t.groupPts += 3; } else if (hs === as) { t.d++; t.groupPts += 1; } else t.l++; }
       if (away) { const t = teams[away.canonical]; t.played++; if (as > hs) { t.w++; t.groupPts += 3; } else if (as === hs) { t.d++; t.groupPts += 1; } else t.l++; }
     } else {
+      // Appearing in a knockout fixture (even before it's played) means the team
+      // reached that round — that's how we award the "out of group" points.
       const idx = KNOCK_ORDER.indexOf(round.key);
-      const bump = (rec, won) => { if (!rec) return; if (idx > KNOCK_ORDER.indexOf(rec.knock)) rec.knock = round.key; if (round.key === 'final' && won) rec.knock = 'champ'; if (!won) rec.eliminated = true; };
-      bump(home && teams[home.canonical], hs > as);
-      bump(away && teams[away.canonical], as > hs);
+      const reach = rec => { if (rec && idx > KNOCK_ORDER.indexOf(rec.knock)) rec.knock = round.key; };
+      reach(home && teams[home.canonical]);
+      reach(away && teams[away.canonical]);
+      if (hasScore(e)) {
+        const hs = Number(e.intHomeScore), as = Number(e.intAwayScore);
+        if (hs !== as) {
+          const winR = hs > as ? home : away, loseR = hs > as ? away : home;
+          if (round.key === 'final' && winR) teams[winR.canonical].knock = 'champ';
+          if (loseR) teams[loseR.canonical].eliminated = true; // lost a knockout
+        }
+      }
     }
+  }
+  // Once the knockouts exist, any team that never qualified is out of the group.
+  if (EVENTS.some(e => !classifyRound(e.intRound).group)) {
+    for (const t of Object.values(teams)) if (!t.knock) t.eliminated = true;
   }
   for (const t of Object.values(teams)) {
     const kp = knockoutPoints(t.knock), total = t.groupPts + kp, o = owners[t.owner];
@@ -166,7 +180,7 @@ function renderBreakdown(table) {
 function teamRow(t) {
   const out = t.eliminated, live = t.knockPts > 0;
   const detail = t.played ? `${esc(t.record)}${live ? ' · ' + esc(t.stageLabel) : ''}` : 'not played yet';
-  return `<div class="team-row ${out ? 'out' : ''}"><span class="tname">${esc(t.name)}<span class="stage-tag ${live ? 'live' : ''}">${detail}</span></span><span class="tpts">${t.points} pt${t.points === 1 ? '' : 's'}</span></div>`;
+  return `<div class="team-row ${out ? 'out' : ''}"><span class="tname"><span class="tn-name">${esc(t.name)}</span><span class="stage-tag ${out ? 'gone' : live ? 'live' : ''}">${out ? 'Eliminated' : detail}</span></span><span class="tpts">${t.points} pt${t.points === 1 ? '' : 's'}</span></div>`;
 }
 function renderMatches(matches) {
   document.getElementById('match-note').textContent = matches.length ? `${matches.length} matches · scores update automatically` : 'No fixtures yet.';
