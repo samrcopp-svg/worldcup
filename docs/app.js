@@ -79,6 +79,20 @@ async function refresh() {
 const hasScore = e => e.intHomeScore !== null && e.intHomeScore !== '' && e.intAwayScore !== null && e.intAwayScore !== '';
 const utcDate = e => new Date(e.strTimestamp + 'Z');
 
+// A knockout result only counts once the game is actually over.
+// FT = full time, AET = after extra time, AP = after penalties.
+const FINISHED = new Set(['FT', 'AET', 'AP', 'Match Finished']);
+// Returns 'home' | 'away' | null. Handles penalty shootouts, where the main
+// score is level and the shootout result sits in the *ScoreExtra fields.
+function knockoutWinner(e) {
+  const hs = Number(e.intHomeScore), as = Number(e.intAwayScore);
+  if (hs > as) return 'home';
+  if (as > hs) return 'away';
+  const he = e.intHomeScoreExtra, ae = e.intAwayScoreExtra;
+  if (he != null && he !== '' && ae != null && ae !== '' && Number(he) !== Number(ae)) return Number(he) > Number(ae) ? 'home' : 'away';
+  return null;
+}
+
 function buildStandings() {
   const owners = {}, teams = {};
   for (const [owner, list] of Object.entries(SEED)) {
@@ -100,10 +114,10 @@ function buildStandings() {
       const reach = rec => { if (rec && idx > KNOCK_ORDER.indexOf(rec.knock)) rec.knock = round.key; };
       reach(home && teams[home.canonical]);
       reach(away && teams[away.canonical]);
-      if (hasScore(e)) {
-        const hs = Number(e.intHomeScore), as = Number(e.intAwayScore);
-        if (hs !== as) {
-          const winR = hs > as ? home : away, loseR = hs > as ? away : home;
+      if (hasScore(e) && FINISHED.has(e.strStatus)) {
+        const winSide = knockoutWinner(e); // handles penalty shootouts (status 'AP')
+        if (winSide) {
+          const winR = winSide === 'home' ? home : away, loseR = winSide === 'home' ? away : home;
           // Winning a knockout game advances the team to the next round (and so
           // earns that round's bonus) even before the next fixture is published.
           const nextKey = KNOCK_ORDER[KNOCK_ORDER.indexOf(round.key) + 1];
